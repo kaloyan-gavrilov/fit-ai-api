@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { Pinecone } from '@pinecone-database/pinecone';
 import { OpenAI } from 'openai';
 import { GoogleGenerativeAI } from '@google/generative-ai';
@@ -103,7 +103,7 @@ export class AppService {
       
       // If no relevant chunks found
       if (relevantChunks.length === 0) {
-        return {error: "I couldn't find any relevant information to answer your question."};
+        return new BadRequestException("I couldn't find any relevant information to answer your question.");
       }
       
       // Generate answer using Gemini with retrieved chunks as context
@@ -112,7 +112,7 @@ export class AppService {
       return { answer };
     } catch (error) {
       console.error("Error processing query:", error);
-      return {error: "An error occurred while processing your query."};
+      throw new BadRequestException("An error occurred while processing your query.");
     }
   }
 }
