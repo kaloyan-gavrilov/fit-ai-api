@@ -42,28 +42,60 @@ export class AppService {
     }
   }
 
-  // Query Pinecone to get top K relevant chunks
-  private async queryPinecone(embeddings: any, topK = 10) {
+  // Query Pinecone to get top K relevant chunks from a specific namespace
+  private async queryPinecone(embeddings: any, topK = 10, namespaceName?: string) {
     if (!embeddings || !embeddings.vector) {
       throw new Error("Invalid embedding format");
     }
-    const queryResponse = await this.index.query({
+    
+    // Get the appropriate namespace
+    const namespaceObj = namespaceName ? this.index.namespace(namespaceName) : this.index.namespace("");
+    
+    const queryOptions = {
       vector: embeddings.vector,
       topK,
       includeMetadata: true,
-    });
+    };
+    
+    const queryResponse = await namespaceObj.query(queryOptions);
     
     return queryResponse.matches;
   }
 
+  // Query both default and programmersSpecific namespaces
+  private async queryBothNamespaces(embeddings: any, topK = 10) {
+    // Query default namespace
+    const defaultResults = await this.queryPinecone(embeddings, topK);
+    
+    // Query programmersSpecific namespace (get just one result as the "lecture")
+    const programmersSpecificResults = await this.queryPinecone(embeddings, 1, "programmersSpecific");
+    
+    // Tag the programmersSpecific result as a "lecture"
+    const taggedProgrammersSpecificResults = programmersSpecificResults.map(result => ({
+      ...result,
+      isLecture: true
+    }));
+    
+    // Combine results
+    return {
+      generalResults: defaultResults,
+      lectureResult: taggedProgrammersSpecificResults.length > 0 ? taggedProgrammersSpecificResults[0] : null
+    };
+  }
+
   // Query Gemini with context
-  private async queryGemini(query: string, nameUser = "User", userInfo = "", contextChunks: Array<{ metadata: { text: string } }> = []) {
+  private async queryGemini(query: string, nameUser = "User", userInfo = "", contextChunks: Array<{ metadata: { text: string } }> = [], lectureChunk: { metadata: { text: string } } | null = null) {
     const model = this.genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
     
-    // Format context chunks into a single string
+    // Format general context chunks into a single string
     const formattedContext = contextChunks
         .map((chunk) => `${chunk.metadata.text}`)
         .join("\n\n");
+    
+    // Format lecture content if available
+    const lectureContent = lectureChunk ? 
+        `\n\nSpecialized Programming Lecture:\n${lectureChunk.metadata.text}` : 
+        '';
     
     const prompt = `
       You are a highly knowledgeable and empathetic personal health assistant specializing in the unique health needs of a programmer named ${nameUser}.
@@ -78,6 +110,8 @@ export class AppService {
       Additional Knowledge:
       You have access to the following knowledge base, which you should treat as your own expertise:
       ${formattedContext}
+      
+      ${lectureContent ? `Programmer-Specific Knowledge:\n${lectureContent}` : ''}
 
       Guidelines:
       - Make sure 
@@ -98,16 +132,16 @@ export class AppService {
       // Generate embedding for the query
       const embedding = await this.generateEmbedding(query);
       
-      // Retrieve top 10 relevant chunks from Pinecone
-      const relevantChunks = await this.queryPinecone(embedding);
+      // Retrieve relevant chunks from both namespaces
+      const { generalResults, lectureResult } = await this.queryBothNamespaces(embedding);
       
-      // If no relevant chunks found
-      if (relevantChunks.length === 0) {
+      // If no relevant chunks found in either namespace
+      if (generalResults.length === 0 && !lectureResult) {
         return new BadRequestException("I couldn't find any relevant information to answer your question.");
       }
       
       // Generate answer using Gemini with retrieved chunks as context
-      const answer = await this.queryGemini(query, nameUser, userInfo, relevantChunks);
+      const answer = await this.queryGemini(query, nameUser, userInfo, generalResults, lectureResult);
       
       return { answer };
     } catch (error) {
@@ -126,26 +160,46 @@ export class AppService {
       const isPlanWorkout = variant.toLowerCase() === 'workout';
       
       const prompt = `
-        Generate a personalized 7-day ${variant} plan for a user with the following information:
-        
-        User Information:
+        Generate a personalized 7-day ${variant} plan tailored to the user's profile, goals, and preferences.
+
+        ### User Profile:
         ${userInfo}
-        
-        Past Experiences:
+
+        ### Past Experiences & Context:
         ${pastExperiences}
-        
-        Instructions:
+
+        ### Specific Instructions:
         ${isPlanWorkout 
-          ? '- Create a balanced workout routine for 7 days\n- Include exercise names, sets, reps, and rest periods\n- Provide variations based on fitness level' 
-          : '- Create a balanced meal plan for 7 days\n- Include today\'s complete meals with ingredients and simple preparation instructions\n- Consider dietary restrictions and nutritional balance'
+          ? `
+        - Design a comprehensive 7-day workout plan that balances strength, cardio, mobility, and recovery.
+        - For each day, include:
+          - Exercise names
+          - Number of sets and reps (or duration for cardio/mobility)
+          - Recommended rest between sets
+          - Optional modifications for beginner, intermediate, and advanced levels.
+        - Ensure progression and variation across the week to maintain engagement and optimize performance.
+        `
+          : `
+        - Create a personalized, well-balanced 7-day meal plan.
+        - For each day, include:
+          - Full meals for breakfast, lunch, dinner, and 1-2 snacks
+          - Ingredients with measurements (metric or imperial based on user info)
+          - Simple preparation instructions (aim for clarity and minimal complexity)
+          - Ensure all meals meet the user’s dietary restrictions and support their nutritional goals (e.g., fat loss, muscle gain, energy, etc.)
+        - Variety is key: Avoid repeating meals unless requested.
+        `
         }
-        
-        Response Format:
-        Return a valid JSON object with the following structure:
+
+        ### Output Format:
+        Return a valid JSON object using this structure:
         {
-          "day1": { "plan": "Detailed plan for day 1 in markdown format" },
-          "day2": { "plan": "Detailed plan for day 2 in markdown format" },
-          ...and so on for all 7 days
+          "day1": { "plan": "Markdown-formatted plan for Day 1" },
+          "day2": { "plan": "Markdown-formatted plan for Day 2" },
+          "day3": { "plan": "..." },
+          "day4": { "plan": "..." },
+          "day5": { "plan": "..." },
+          "day6": { "plan": "..." },
+          "day7": { "plan": "Markdown-formatted plan for Day 7" }
         }
       `;
 
