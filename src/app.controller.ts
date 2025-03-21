@@ -15,6 +15,7 @@ export class AppController {
   }
 
   @Post('generate-plan')
+  @HttpCode(200)
   async generatePlan(@Body() body: GeneratePlanRequestBodyDto) {
     return this.appService.generatePlan(body.variant, body.userInfo, body.pastExperiences);
   }
