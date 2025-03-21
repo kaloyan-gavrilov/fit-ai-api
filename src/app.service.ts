@@ -115,4 +115,57 @@ export class AppService {
       throw new BadRequestException("An error occurred while processing your query.");
     }
   }
+
+  // Generate a 7-day plan using OpenAI
+  async generatePlan(variant: string, userInfo: string, pastExperiences: string) {
+    try {
+      if (!['workout', 'diet'].includes(variant.toLowerCase())) {
+        throw new BadRequestException('Variant must be either "workout" or "diet"');
+      }
+
+      const isPlanWorkout = variant.toLowerCase() === 'workout';
+      
+      const prompt = `
+        Generate a personalized 7-day ${variant} plan for a user with the following information:
+        
+        User Information:
+        ${userInfo}
+        
+        Past Experiences:
+        ${pastExperiences}
+        
+        Instructions:
+        ${isPlanWorkout 
+          ? '- Create a balanced workout routine for 7 days\n- Include exercise names, sets, reps, and rest periods\n- Provide variations based on fitness level' 
+          : '- Create a balanced meal plan for 7 days\n- Include today\'s complete meals with ingredients and simple preparation instructions\n- Consider dietary restrictions and nutritional balance'
+        }
+        
+        Response Format:
+        Return a valid JSON object with the following structure:
+        {
+          "day1": { "plan": "Detailed plan for day 1 in markdown format" },
+          "day2": { "plan": "Detailed plan for day 2 in markdown format" },
+          ...and so on for all 7 days
+        }
+      `;
+
+      const response = await this.openai.chat.completions.create({
+        model: "gpt-4o",
+        response_format: { type: "json_object" },
+        messages: [
+          {
+            role: "system",
+            content: `You are a professional ${isPlanWorkout ? 'fitness trainer' : 'nutritionist'} who creates personalized ${variant} plans. Provide detailed, actionable plans in JSON format.`
+          },
+          { role: "user", content: prompt }
+        ],
+      });
+
+      const planJson = JSON.parse(response.choices[0].message.content || '{}');
+      return planJson;
+    } catch (error) {
+      console.error(`Error generating ${variant} plan:`, error);
+      throw new BadRequestException(`Failed to generate ${variant} plan: ${error.message}`);
+    }
+  }
 }
