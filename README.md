@@ -1,22 +1,25 @@
 <p align="center">
-  <img width="256px" src="./docs/logo.png.png" alt="FitAI Logo" />
+  <img width="256px" src="./docs/logo.png" alt="FitAI Logo" />
   <h1 align="center">FitAI API</h1>
   <p align="center">
-    [<a href="https://github.com/x2oreo/FitAI">FitAI</a>]
-    [<b><u>FitAI API</u></b>]
-    [<a href="https://github.com/x2oreo/FitAI-vscode-extension">VS Code Extension</a>]
+    [ <a href="https://github.com/x2oreo/FitAI">FitAI</a> ] · 
+    [ <b><ins>FitAI API</ins></b> ] · 
+    [ <a href="https://github.com/x2oreo/FitAI-vscode-extension">FitAI VS Code Extension</a> ]
   </p>
   <p align="center">
-    FitAI is an innovative ecosystem tailored specifically for developers who face challenges balancing health with their demanding coding schedules. Our solution simplifies achieving fitness goals by providing personalized workout and meal plans, seamlessly fitting into your busy lifestyle.
+    FitAI is an innovative ecosystem tailored specifically for developers who face challenges balancing health with their demanding coding schedules. Our solution simplifies achieving fitness goals by providing personalized workout and meal plans, AI expert advice and integration in the VSCode ecosystem.
   </p>
 </p>
 
 <p align="center">
-    <a href="https://github.com/x2oreo/fitai/fork">
+    <a href="https://github.com/x2oreo/fitai-api/releases">
+      <img alt="GitHub Issues or Pull Requests" src="https://img.shields.io/github/issues/x2oreo/fitai-api?color=88ff0c&style=flat-square">
+    </a>
+    <a href="https://github.com/x2oreo/fitai-api/fork">
         <img src="https://img.shields.io/badge/contributions-welcome-brightgreen.svg?color=88ff0c&style=flat-square" alt="Contributions welcome" />
     </a>
     <a href="LICENSE">
-        <img src="https://img.shields.io/github/license/x2oreo/fitai?color=88ff0c&style=flat-square" alt="License" />
+        <img src="https://img.shields.io/github/license/x2oreo/fitai-api?color=88ff0c&style=flat-square" alt="License" />
     </a>
 </p>
 
@@ -32,8 +35,17 @@ The FitAI ecosystem consists of three primary components:
 
 Each component has detailed setup instructions available in their respective repositories.
 
-## Authors
+## Development
 
+Processing of the knowledge base is done using **Python**. The AI serving API is written in **Nest.js** on **Node.js**. To build and run it locally, you need to do the following:
+
+1. Configure Node.js 22 LTS on your machine.
+2. Install the nessary packages using `npm install`.
+3. Configure an `.env` file with key for AI services.
+4. Run the application using `npm run start:dev`.
+5. **Enjoy! 🎉**
+
+## Authors
 <table width="100%">
   <tr>
     <td align="center">
