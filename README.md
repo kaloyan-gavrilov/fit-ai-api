@@ -62,7 +62,7 @@ Processing of the knowledge base is done using **Python**. The AI serving API is
     </td>
     <td align="center">
         <img width="150px" src="https://github.com/krister078.png" alt="Kristiyan Kulekov" />
-        <p><b>Kristiyan Kulekov</b><br/><a href="https://github.com/simo1209/"><img src="https://img.shields.io/badge/GitHub-100000?style=flat-square&logo=github&logoColor=white" /></a></p>
+        <p><b>Kristiyan Kulekov</b><br/><a href="https://github.com/krister078/"><img src="https://img.shields.io/badge/GitHub-100000?style=flat-square&logo=github&logoColor=white" /></a></p>
     </td>
   </tr>
 </table>
@@ -73,7 +73,7 @@ Processing of the knowledge base is done using **Python**. The AI serving API is
 
 We welcome contributions to the FitAI ecosystem! Follow these steps:
 
-1. Fork the repository: <https://github.com/x2oreo/FitAI/fork>
+1. Fork the repository: <https://github.com/x2oreo/FitAI-API/fork>
 2. Create a feature branch: `git checkout -b feature/your-feature-name`
 3. Commit your changes: `git commit -m "Add your message here"`
 4. Push to your branch: `git push origin feature/your-feature-name`
