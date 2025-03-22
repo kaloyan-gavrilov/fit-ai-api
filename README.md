@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-    <a href="https://github.com/x2oreo/fitai-api/releases">
+    <a href="https://github.com/orgs/x2oreo/projects/2">
       <img alt="GitHub Issues or Pull Requests" src="https://img.shields.io/github/issues/x2oreo/fitai-api?color=88ff0c&style=flat-square">
     </a>
     <a href="https://github.com/x2oreo/fitai-api/fork">
